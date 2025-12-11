@@ -125,10 +125,13 @@ class BlockManagerSuite extends SparkFunSuite with Matchers with PrivateMethodTe
       master: BlockManagerMaster = this.master,
       transferService: Option[BlockTransferService] = Option.empty,
       testConf: Option[SparkConf] = None,
-      shuffleManager: ShuffleManager = shuffleManager): BlockManager = {
+      shuffleManager: ShuffleManager = shuffleManager ): BlockManager = {
     val bmConf = testConf.map(_.setAll(conf.getAll)).getOrElse(conf)
     bmConf.set(TEST_MEMORY, maxMem)
     bmConf.set(MEMORY_OFFHEAP_SIZE, maxMem)
+    if(maxMem > 0) {
+      bmConf.set(MEMORY_OFFHEAP_ENABLED, true)
+    }
     val serializer = new KryoSerializer(bmConf)
     val encryptionKey = if (bmConf.get(IO_ENCRYPTION_ENABLED)) {
       Some(CryptoStreamUtils.createKey(bmConf))
@@ -1165,7 +1168,7 @@ class BlockManagerSuite extends SparkFunSuite with Matchers with PrivateMethodTe
       storageLevel: StorageLevel,
       getAsBytes: Boolean,
       testConf: SparkConf): Unit = {
-    val store = makeBlockManager(12000, testConf = Some(testConf))
+    val store = makeBlockManager(12000, testConf = Some(testConf), isOff)
     val accessMethod =
       if (getAsBytes) store.getLocalBytesAndReleaseLock else store.getSingleAndReleaseLock
     val a1 = new Array[Byte](4000)
