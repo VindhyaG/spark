@@ -225,6 +225,8 @@ private[spark] abstract class MemoryManager(
   /**
    * Tracks whether Tungsten memory will be allocated on the JVM heap or off-heap using
    * sun.misc.Unsafe.
+   * If MEMORY_OFFHEAP_ENABLED is false then set the MEMORY_OFFHEAP_SIZE to zero since it needs to be reflected
+   * in spark UI that heap is not being used
    */
   final val tungstenMemoryMode: MemoryMode = {
     if (conf.get(MEMORY_OFFHEAP_ENABLED)) {
@@ -235,6 +237,7 @@ private[spark] abstract class MemoryManager(
       MemoryMode.OFF_HEAP
     } else {
       MemoryMode.ON_HEAP
+      MEMORY_OFFHEAP_SIZE = 0
     }
   }
 
